@@ -26,10 +26,12 @@ public class SecurityConfig {
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/actuator/**").permitAll()
-                .requestMatchers("/api/auth/**").permitAll()
-                .requestMatchers("/api/users/**").permitAll() // Temporary for testing
-                .requestMatchers("/api/categories/**").permitAll() // Temporary for testing
-                .requestMatchers("/api/transactions/**").permitAll() // Temporary for testing
+                .requestMatchers("/users/**").permitAll() // Allow users endpoint
+                .requestMatchers("/categories/**").permitAll() // Allow categories endpoint
+                .requestMatchers("/transactions/**").permitAll() // Allow transactions endpoint
+                .requestMatchers("/budgets/**").permitAll() // Allow budgets endpoint
+                .requestMatchers("/settings/**").permitAll() // Allow settings endpoint
+                .requestMatchers("/error").permitAll() // Allow error pages
                 .anyRequest().authenticated()
             );
         
@@ -51,6 +53,7 @@ public class SecurityConfig {
         
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
+        
         return source;
     }
 }

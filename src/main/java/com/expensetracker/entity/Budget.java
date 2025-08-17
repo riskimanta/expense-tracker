@@ -3,8 +3,8 @@ package com.expensetracker.entity;
 import jakarta.persistence.*;
 
 @Entity
-@Table(name = "transactions")
-public class Transaction {
+@Table(name = "budgets")
+public class Budget {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -13,20 +13,23 @@ public class Transaction {
     @Column(name = "user_id")
     private Integer userId;
 
-    @Column(name = "type")
-    private String type;
+    @Column(name = "category_id")
+    private Integer categoryId;
 
     @Column(name = "amount")
     private Double amount;
 
-    @Column(name = "category_id")
-    private Integer categoryId;
+    @Column(name = "period")
+    private String period;
 
-    @Column(name = "description")
-    private String description;
+    @Column(name = "start_date")
+    private String startDate;
 
-    @Column(name = "transaction_date")
-    private String transactionDate;
+    @Column(name = "end_date")
+    private String endDate;
+
+    @Column(name = "is_active")
+    private Integer isActive;
 
     @Column(name = "created_at")
     private String createdAt;
@@ -35,15 +38,14 @@ public class Transaction {
     private String updatedAt;
 
     // Constructors
-    public Transaction() {}
+    public Budget() {}
 
-    public Transaction(Integer userId, String type, Double amount, Integer categoryId, String description, String transactionDate) {
+    public Budget(Integer userId, Integer categoryId, Double amount, String period, String startDate) {
         this.userId = userId;
-        this.type = type;
-        this.amount = amount;
         this.categoryId = categoryId;
-        this.description = description;
-        this.transactionDate = transactionDate;
+        this.amount = amount;
+        this.period = period;
+        this.startDate = startDate;
     }
 
     // Getters and Setters
@@ -63,12 +65,12 @@ public class Transaction {
         this.userId = userId;
     }
 
-    public String getType() {
-        return type;
+    public Integer getCategoryId() {
+        return categoryId;
     }
 
-    public void setType(String type) {
-        this.type = type;
+    public void setCategoryId(Integer categoryId) {
+        this.categoryId = categoryId;
     }
 
     public Double getAmount() {
@@ -79,28 +81,36 @@ public class Transaction {
         this.amount = amount;
     }
 
-    public Integer getCategoryId() {
-        return categoryId;
+    public String getPeriod() {
+        return period;
     }
 
-    public void setCategoryId(Integer categoryId) {
-        this.categoryId = categoryId;
+    public void setPeriod(String period) {
+        this.period = period;
     }
 
-    public String getDescription() {
-        return description;
+    public String getStartDate() {
+        return startDate;
     }
 
-    public void setDescription(String description) {
-        this.description = description;
+    public void setStartDate(String startDate) {
+        this.startDate = startDate;
     }
 
-    public String getTransactionDate() {
-        return transactionDate;
+    public String getEndDate() {
+        return endDate;
     }
 
-    public void setTransactionDate(String transactionDate) {
-        this.transactionDate = transactionDate;
+    public void setEndDate(String endDate) {
+        this.endDate = endDate;
+    }
+
+    public Integer getIsActive() {
+        return isActive;
+    }
+
+    public void setIsActive(Integer isActive) {
+        this.isActive = isActive;
     }
 
     public String getCreatedAt() {

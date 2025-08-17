@@ -22,7 +22,7 @@ public class UserService {
         return userRepository.findAll();
     }
 
-    public Optional<User> getUserById(Long id) {
+    public Optional<User> getUserById(Integer id) {
         return userRepository.findById(id);
     }
 
@@ -40,16 +40,16 @@ public class UserService {
         
         // Set default values
         if (user.getRole() == null) {
-            user.setRole(User.UserRole.USER);
+            user.setRole("USER");
         }
         if (user.getStatus() == null) {
-            user.setStatus(User.UserStatus.ACTIVE);
+            user.setStatus("ACTIVE");
         }
         
         return userRepository.save(user);
     }
 
-    public User updateUser(Long id, User userDetails) {
+    public User updateUser(Integer id, User userDetails) {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("User tidak ditemukan"));
         
@@ -66,21 +66,21 @@ public class UserService {
         return userRepository.save(user);
     }
 
-    public void deleteUser(Long id) {
+    public void deleteUser(Integer id) {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("User tidak ditemukan"));
         userRepository.delete(user);
     }
 
-    public List<User> getUsersByRole(User.UserRole role) {
+    public List<User> getUsersByRole(String role) {
         return userRepository.findByRole(role);
     }
 
-    public List<User> getUsersByStatus(User.UserStatus status) {
+    public List<User> getUsersByStatus(String status) {
         return userRepository.findByStatus(status);
     }
 
-    public long countUsersByRole(User.UserRole role) {
+    public long countUsersByRole(String role) {
         return userRepository.countByRole(role);
     }
 

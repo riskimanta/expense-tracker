@@ -23,7 +23,7 @@ public class UserController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<User> getUserById(@PathVariable Long id) {
+    public ResponseEntity<User> getUserById(@PathVariable Integer id) {
         return userService.getUserById(id)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
@@ -40,7 +40,7 @@ public class UserController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<User> updateUser(@PathVariable Long id, @RequestBody User userDetails) {
+    public ResponseEntity<User> updateUser(@PathVariable Integer id, @RequestBody User userDetails) {
         try {
             User updatedUser = userService.updateUser(id, userDetails);
             return ResponseEntity.ok(updatedUser);
@@ -50,7 +50,7 @@ public class UserController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteUser(@PathVariable Long id) {
+    public ResponseEntity<Void> deleteUser(@PathVariable Integer id) {
         try {
             userService.deleteUser(id);
             return ResponseEntity.ok().build();
@@ -62,10 +62,9 @@ public class UserController {
     @GetMapping("/role/{role}")
     public ResponseEntity<List<User>> getUsersByRole(@PathVariable String role) {
         try {
-            User.UserRole userRole = User.UserRole.valueOf(role.toUpperCase());
-            List<User> users = userService.getUsersByRole(userRole);
+            List<User> users = userService.getUsersByRole(role);
             return ResponseEntity.ok(users);
-        } catch (IllegalArgumentException e) {
+        } catch (RuntimeException e) {
             return ResponseEntity.badRequest().build();
         }
     }
@@ -73,10 +72,9 @@ public class UserController {
     @GetMapping("/status/{status}")
     public ResponseEntity<List<User>> getUsersByStatus(@PathVariable String status) {
         try {
-            User.UserStatus userStatus = User.UserStatus.valueOf(status.toUpperCase());
-            List<User> users = userService.getUsersByStatus(userStatus);
+            List<User> users = userService.getUsersByStatus(status);
             return ResponseEntity.ok(users);
-        } catch (IllegalArgumentException e) {
+        } catch (RuntimeException e) {
             return ResponseEntity.badRequest().build();
         }
     }
@@ -92,10 +90,9 @@ public class UserController {
     @GetMapping("/count/role/{role}")
     public ResponseEntity<Long> countUsersByRole(@PathVariable String role) {
         try {
-            User.UserRole userRole = User.UserRole.valueOf(role.toUpperCase());
-            long count = userService.countUsersByRole(userRole);
+            long count = userService.countUsersByRole(role);
             return ResponseEntity.ok(count);
-        } catch (IllegalArgumentException e) {
+        } catch (RuntimeException e) {
             return ResponseEntity.badRequest().build();
         }
     }

@@ -2,32 +2,54 @@ class ExpenseTracker {
     constructor() {
         this.transactions = JSON.parse(localStorage.getItem('transactions')) || [];
         this.chart = null;
+        this.isUpdating = false;
         this.init();
     }
 
     init() {
         this.setupEventListeners();
-        this.updateDisplay();
-        this.updateChart();
+        this.renderAll();
     }
 
     setupEventListeners() {
         // Form submission
-        document.getElementById('transactionForm').addEventListener('submit', (e) => {
-            e.preventDefault();
-            this.addTransaction();
-        });
+        const form = document.getElementById('transactionForm');
+        if (form) {
+            form.addEventListener('submit', (e) => {
+                e.preventDefault();
+                this.addTransaction();
+            });
+        }
 
-        // Filter changes
-        document.getElementById('filterCategory').addEventListener('change', () => this.updateDisplay());
-        document.getElementById('filterType').addEventListener('change', () => this.updateDisplay());
+        // Filter changes with proper debouncing
+        const categoryFilter = document.getElementById('filterCategory');
+        const typeFilter = document.getElementById('filterType');
+        
+        if (categoryFilter) {
+            categoryFilter.addEventListener('change', () => this.debouncedRender());
+        }
+        if (typeFilter) {
+            typeFilter.addEventListener('change', () => this.debouncedRender());
+        }
+    }
+
+    // Simple debouncing
+    debouncedRender() {
+        if (this.renderTimeout) {
+            clearTimeout(this.renderTimeout);
+        }
+        this.renderTimeout = setTimeout(() => {
+            this.renderAll();
+        }, 200);
     }
 
     addTransaction() {
-        const type = document.getElementById('type').value;
-        const amount = parseFloat(document.getElementById('amount').value);
-        const category = document.getElementById('category').value;
-        const description = document.getElementById('description').value;
+        if (this.isUpdating) return;
+        
+        const type = document.getElementById('type')?.value;
+        const amount = parseFloat(document.getElementById('amount')?.value);
+        const category = document.getElementById('category')?.value;
+        const description = document.getElementById('description')?.value;
 
         if (!amount || !category || !description) {
             alert('Mohon lengkapi semua field!');
@@ -45,31 +67,38 @@ class ExpenseTracker {
 
         this.transactions.push(transaction);
         this.saveToLocalStorage();
-        this.updateDisplay();
-        this.updateChart();
+        this.renderAll();
         this.resetForm();
     }
 
     deleteTransaction(id) {
+        if (this.isUpdating) return;
+        
         if (confirm('Yakin ingin menghapus transaksi ini?')) {
             this.transactions = this.transactions.filter(t => t.id !== id);
             this.saveToLocalStorage();
-            this.updateDisplay();
-            this.updateChart();
+            this.renderAll();
         }
     }
 
     resetForm() {
-        document.getElementById('transactionForm').reset();
+        const form = document.getElementById('transactionForm');
+        if (form) {
+            form.reset();
+        }
     }
 
     saveToLocalStorage() {
-        localStorage.setItem('transactions', JSON.stringify(this.transactions));
+        try {
+            localStorage.setItem('transactions', JSON.stringify(this.transactions));
+        } catch (e) {
+            console.error('Error saving to localStorage:', e);
+        }
     }
 
     getFilteredTransactions() {
-        const categoryFilter = document.getElementById('filterCategory').value;
-        const typeFilter = document.getElementById('filterType').value;
+        const categoryFilter = document.getElementById('filterCategory')?.value || '';
+        const typeFilter = document.getElementById('filterType')?.value || '';
 
         return this.transactions.filter(transaction => {
             const categoryMatch = !categoryFilter || transaction.category === categoryFilter;
@@ -78,10 +107,17 @@ class ExpenseTracker {
         });
     }
 
-    updateDisplay() {
-        const filteredTransactions = this.getFilteredTransactions();
-        this.updateSummary();
-        this.updateTransactionsTable(filteredTransactions);
+    renderAll() {
+        if (this.isUpdating) return;
+        this.isUpdating = true;
+
+        try {
+            this.updateSummary();
+            this.updateTransactionsTable();
+            this.updateChart();
+        } finally {
+            this.isUpdating = false;
+        }
     }
 
     updateSummary() {
@@ -95,21 +131,35 @@ class ExpenseTracker {
 
         const balance = totalIncome - totalExpense;
 
-        document.getElementById('totalIncome').textContent = `Rp ${totalIncome.toLocaleString('id-ID')}`;
-        document.getElementById('totalExpense').textContent = `Rp ${totalExpense.toLocaleString('id-ID')}`;
-        document.getElementById('balance').textContent = `Rp ${balance.toLocaleString('id-ID')}`;
+        const incomeEl = document.getElementById('totalIncome');
+        const expenseEl = document.getElementById('totalExpense');
+        const balanceEl = document.getElementById('balance');
+
+        if (incomeEl) incomeEl.textContent = `Rp ${totalIncome.toLocaleString('id-ID')}`;
+        if (expenseEl) expenseEl.textContent = `Rp ${totalExpense.toLocaleString('id-ID')}`;
+        if (balanceEl) balanceEl.textContent = `Rp ${balance.toLocaleString('id-ID')}`;
     }
 
-    updateTransactionsTable(transactions) {
+    updateTransactionsTable() {
         const tbody = document.getElementById('transactionsBody');
+        if (!tbody) return;
+
+        const filteredTransactions = this.getFilteredTransactions();
+        
+        // Clear existing content
         tbody.innerHTML = '';
 
-        if (transactions.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="6" style="text-align: center;">Tidak ada transaksi</td></tr>';
+        if (filteredTransactions.length === 0) {
+            const row = document.createElement('tr');
+            row.innerHTML = '<td colspan="6" style="text-align: center;">Tidak ada transaksi</td>';
+            tbody.appendChild(row);
             return;
         }
 
-        transactions.forEach(transaction => {
+        // Create fragment for better performance
+        const fragment = document.createDocumentFragment();
+
+        filteredTransactions.forEach(transaction => {
             const row = document.createElement('tr');
             row.innerHTML = `
                 <td>${transaction.date}</td>
@@ -129,8 +179,10 @@ class ExpenseTracker {
                     </button>
                 </td>
             `;
-            tbody.appendChild(row);
+            fragment.appendChild(row);
         });
+
+        tbody.appendChild(fragment);
     }
 
     getCategoryLabel(category) {
@@ -149,11 +201,13 @@ class ExpenseTracker {
     }
 
     updateChart() {
-        const ctx = document.getElementById('expenseChart').getContext('2d');
-        
+        const canvas = document.getElementById('expenseChart');
+        if (!canvas) return;
+
         // Destroy existing chart if it exists
         if (this.chart) {
             this.chart.destroy();
+            this.chart = null;
         }
 
         // Get expense data by category
@@ -168,15 +222,18 @@ class ExpenseTracker {
         const data = Object.values(expenseData);
 
         if (data.length === 0) {
-            // Show message if no expense data
+            // Show empty state
+            const ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
             ctx.font = '16px Arial';
             ctx.fillStyle = '#666';
             ctx.textAlign = 'center';
-            ctx.fillText('Belum ada data pengeluaran', ctx.canvas.width / 2, ctx.canvas.height / 2);
+            ctx.fillText('Belum ada data pengeluaran', canvas.width / 2, canvas.height / 2);
             return;
         }
 
-        this.chart = new Chart(ctx, {
+        // Create new chart
+        this.chart = new Chart(canvas, {
             type: 'pie',
             data: {
                 labels: labels,
@@ -218,33 +275,50 @@ class ExpenseTracker {
     }
 }
 
-// Initialize the application
-const expenseTracker = new ExpenseTracker();
+// Initialize the application when DOM is ready
+document.addEventListener('DOMContentLoaded', () => {
+    window.expenseTracker = new ExpenseTracker();
+});
 
-// Add some CSS for badges
-const style = document.createElement('style');
-style.textContent = `
-    .badge {
-        padding: 5px 10px;
-        border-radius: 15px;
-        font-size: 12px;
-        font-weight: bold;
-    }
-    .badge.income {
-        background: #4CAF50;
-        color: white;
-    }
-    .badge.expense {
-        background: #f44336;
-        color: white;
-    }
-    .income-amount {
-        color: #4CAF50;
-        font-weight: bold;
-    }
-    .expense-amount {
-        color: #f44336;
-        font-weight: bold;
-    }
-`;
-document.head.appendChild(style);
+// Add CSS styles only once
+if (!document.getElementById('expense-tracker-styles')) {
+    const style = document.createElement('style');
+    style.id = 'expense-tracker-styles';
+    style.textContent = `
+        .badge {
+            padding: 5px 10px;
+            border-radius: 15px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        .badge.income {
+            background: #4CAF50;
+            color: white;
+        }
+        .badge.expense {
+            background: #f44336;
+            color: white;
+        }
+        .income-amount {
+            color: #4CAF50;
+            font-weight: bold;
+        }
+        .expense-amount {
+            color: #f44336;
+            font-weight: bold;
+        }
+        .delete-btn {
+            background: #f44336;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        .delete-btn:hover {
+            background: #d32f2f;
+        }
+    `;
+    document.head.appendChild(style);
+}

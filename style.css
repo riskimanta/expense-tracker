@@ -7,8 +7,8 @@
 body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    min-height: 100vh;
     padding: 20px;
+    /* Remove min-height: 100vh to prevent infinite height */
 }
 
 .container {
@@ -17,7 +17,7 @@ body {
     background: white;
     border-radius: 20px;
     box-shadow: 0 20px 40px rgba(0,0,0,0.1);
-    overflow: hidden;
+    /* Remove overflow: hidden to allow normal scrolling */
 }
 
 h1 {
@@ -164,6 +164,9 @@ button:hover {
 /* Table */
 .transactions-container {
     padding: 30px;
+    /* Add max-height and overflow for better table handling */
+    max-height: 600px;
+    overflow-y: auto;
 }
 
 table {
@@ -182,6 +185,10 @@ th {
     background: #f8f9fa;
     font-weight: 600;
     color: #555;
+    /* Make header sticky */
+    position: sticky;
+    top: 0;
+    z-index: 10;
 }
 
 .delete-btn {
@@ -202,11 +209,14 @@ th {
 .chart-container {
     padding: 30px;
     background: #f8f9fa;
+    /* Fix chart height to prevent layout issues */
+    height: 500px;
+    position: relative;
 }
 
 canvas {
     max-width: 100%;
-    height: 400px;
+    height: 100% !important;
 }
 
 /* Responsive Design */
@@ -231,5 +241,13 @@ canvas {
     
     th, td {
         padding: 10px 8px;
+    }
+    
+    .transactions-container {
+        max-height: 400px;
+    }
+    
+    .chart-container {
+        height: 300px;
     }
 }
