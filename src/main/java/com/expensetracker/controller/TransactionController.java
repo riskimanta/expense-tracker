@@ -24,9 +24,12 @@ public class TransactionController {
 
     @GetMapping("/{id}")
     public ResponseEntity<Transaction> getTransactionById(@PathVariable Integer id) {
-        return transactionService.getTransactionById(id)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+        Transaction transaction = transactionService.getTransactionById(id);
+        if (transaction != null) {
+            return ResponseEntity.ok(transaction);
+        } else {
+            return ResponseEntity.notFound().build();
+        }
     }
 
     @GetMapping("/user/{userId}")
@@ -48,12 +51,56 @@ public class TransactionController {
     }
 
     @PostMapping
-    public ResponseEntity<Transaction> createTransaction(@RequestBody Transaction transaction) {
+    public ResponseEntity<?> createTransaction(@RequestBody Transaction transaction) {
         try {
+            System.out.println("=== CREATE TRANSACTION REQUEST ===");
+            System.out.println("Received transaction: " + transaction);
+            System.out.println("Transaction type: " + (transaction.getType() != null ? transaction.getType() : "NULL"));
+            System.out.println("Transaction amount: " + (transaction.getAmount() != null ? transaction.getAmount() : "NULL"));
+            System.out.println("Transaction categoryId: " + (transaction.getCategoryId() != null ? transaction.getCategoryId() : "NULL"));
+            System.out.println("Transaction userId: " + (transaction.getUserId() != null ? transaction.getUserId() : "NULL"));
+            System.out.println("Transaction description: " + (transaction.getDescription() != null ? transaction.getDescription() : "NULL"));
+            System.out.println("Transaction date: " + (transaction.getTransactionDate() != null ? transaction.getTransactionDate() : "NULL"));
+            System.out.println("=================================");
+            
+            // Validate required fields
+            if (transaction.getType() == null || transaction.getType().trim().isEmpty()) {
+                System.err.println("ERROR: Transaction type is required");
+                return ResponseEntity.badRequest().body("Transaction type is required");
+            }
+            if (transaction.getAmount() == null || transaction.getAmount() <= 0) {
+                System.err.println("ERROR: Transaction amount must be positive");
+                return ResponseEntity.badRequest().body("Transaction amount must be positive");
+            }
+            if (transaction.getCategoryId() == null) {
+                System.err.println("ERROR: Category ID is required");
+                return ResponseEntity.badRequest().body("Category ID is required");
+            }
+            if (transaction.getUserId() == null) {
+                System.err.println("ERROR: User ID is required");
+                return ResponseEntity.badRequest().body("User ID is required");
+            }
+            if (transaction.getDescription() == null || transaction.getDescription().trim().isEmpty()) {
+                System.err.println("ERROR: Description is required");
+                return ResponseEntity.badRequest().body("Description is required");
+            }
+            if (transaction.getTransactionDate() == null || transaction.getTransactionDate().trim().isEmpty()) {
+                System.err.println("ERROR: Transaction date is required");
+                return ResponseEntity.badRequest().body("Transaction date is required");
+            }
+            
+            System.out.println("All validations passed, calling service...");
             Transaction createdTransaction = transactionService.createTransaction(transaction);
+            System.out.println("Transaction created successfully: " + createdTransaction.getId());
             return ResponseEntity.ok(createdTransaction);
         } catch (RuntimeException e) {
-            return ResponseEntity.badRequest().build();
+            System.err.println("RuntimeException in createTransaction: " + e.getMessage());
+            e.printStackTrace();
+            return ResponseEntity.badRequest().body("Error: " + e.getMessage());
+        } catch (Exception e) {
+            System.err.println("Unexpected error in createTransaction: " + e.getMessage());
+            e.printStackTrace();
+            return ResponseEntity.internalServerError().body("Unexpected error: " + e.getMessage());
         }
     }
 

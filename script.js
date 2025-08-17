@@ -1,14 +1,151 @@
+// API Service Layer
+class ApiService {
+    constructor() {
+        this.baseUrl = 'http://localhost:8080';
+    }
+
+    async makeRequest(endpoint, options = {}) {
+        try {
+            console.log(`API Request: ${options.method || 'GET'} ${this.baseUrl}${endpoint}`);
+            if (options.body) {
+                console.log('Request Body:', options.body);
+            }
+
+            const response = await fetch(`${this.baseUrl}${endpoint}`, {
+                headers: {
+                    'Content-Type': 'application/json',
+                    ...options.headers
+                },
+                ...options
+            });
+
+            console.log(`API Response Status: ${response.status}`);
+            console.log(`API Response Headers:`, Object.fromEntries(response.headers.entries()));
+
+            if (!response.ok) {
+                const errorText = await response.text();
+                console.error('API Error Response:', errorText);
+                throw new Error(`HTTP ${response.status}: ${errorText || response.statusText}`);
+            }
+
+            const data = await response.json();
+            console.log('API Response Data:', data);
+            return data;
+        } catch (error) {
+            console.error('API Error Details:', error);
+            throw error;
+        }
+    }
+
+    // User API calls
+    async getUsers() {
+        return this.makeRequest('/users');
+    }
+
+    async getUserById(id) {
+        return this.makeRequest(`/users/${id}`);
+    }
+
+    // Category API calls
+    async getCategories() {
+        return this.makeRequest('/categories');
+    }
+
+    async getCategoriesByType(type) {
+        return this.makeRequest(`/categories/type/${type}`);
+    }
+
+    // Transaction API calls
+    async getTransactions() {
+        return this.makeRequest('/transactions');
+    }
+
+    async createTransaction(transaction) {
+        return this.makeRequest('/transactions', {
+            method: 'POST',
+            body: JSON.stringify(transaction)
+        });
+    }
+
+    async updateTransaction(id, transaction) {
+        return this.makeRequest(`/transactions/${id}`, {
+            method: 'PUT',
+            body: JSON.stringify(transaction)
+        });
+    }
+
+    async deleteTransaction(id) {
+        return this.makeRequest(`/transactions/${id}`, {
+            method: 'DELETE'
+        });
+    }
+}
+
+// Initialize API Service
+const apiService = new ApiService();
+
 class ExpenseTracker {
     constructor() {
-        this.transactions = JSON.parse(localStorage.getItem('transactions')) || [];
+        this.transactions = [];
+        this.categories = [];
+        this.users = [];
+        this.initialBalance = 0;
         this.chart = null;
         this.isUpdating = false;
         this.init();
     }
 
-    init() {
-        this.setupEventListeners();
-        this.renderAll();
+    async init() {
+        try {
+            // Load data from API
+            await this.loadDataFromAPI();
+            
+            // Setup UI
+            this.setupEventListeners();
+            this.renderAll();
+        } catch (error) {
+            console.error('Failed to initialize:', error);
+            // Fallback to localStorage if API fails
+            this.fallbackToLocalStorage();
+        }
+    }
+
+    async loadDataFromAPI() {
+        try {
+            // Load categories first (needed for transaction form)
+            this.categories = await apiService.getCategories();
+            
+            // Load transactions
+            this.transactions = await apiService.getTransactions();
+            
+            // Load users
+            this.users = await apiService.getUsers();
+            
+            // Load initial balance from localStorage (fallback)
+            this.initialBalance = parseFloat(localStorage.getItem('initialBalance')) || 0;
+            
+            console.log('Data loaded from API:', {
+                categories: this.categories.length,
+                transactions: this.transactions.length,
+                users: this.users.length
+            });
+        } catch (error) {
+            console.error('Failed to load data from API:', error);
+            throw error;
+        }
+    }
+
+    fallbackToLocalStorage() {
+        console.log('Falling back to localStorage...');
+        this.transactions = JSON.parse(localStorage.getItem('transactions')) || [];
+        this.initialBalance = parseFloat(localStorage.getItem('initialBalance')) || 0;
+        this.categories = [
+            { id: 1, name: 'Gaji', type: 'INCOME', color: '#4CAF50', icon: '💰' },
+            { id: 2, name: 'Freelance', type: 'INCOME', color: '#2196F3', icon: '💼' },
+            { id: 3, name: 'Makanan', type: 'EXPENSE', color: '#f44336', icon: '🍔' },
+            { id: 4, name: 'Transport', type: 'EXPENSE', color: '#9C27B0', icon: '🚗' },
+            { id: 5, name: 'Hiburan', type: 'EXPENSE', color: '#E91E63', icon: '🎬' }
+        ];
     }
 
     setupEventListeners() {
@@ -31,6 +168,28 @@ class ExpenseTracker {
         if (typeFilter) {
             typeFilter.addEventListener('change', () => this.debouncedRender());
         }
+
+        // Auto-format amount input field
+        const amountInput = document.getElementById('amount');
+        if (amountInput) {
+            amountInput.addEventListener('input', (e) => this.formatAmountInput(e));
+            amountInput.addEventListener('focus', (e) => this.formatAmountOnFocus(e));
+            amountInput.addEventListener('blur', (e) => this.formatAmountOnBlur(e));
+        }
+
+        // Initial balance functionality
+        const setBalanceBtn = document.getElementById('setBalanceBtn');
+        const initialBalanceInput = document.getElementById('initialBalance');
+        
+        if (setBalanceBtn) {
+            setBalanceBtn.addEventListener('click', () => this.setInitialBalance());
+        }
+        
+        if (initialBalanceInput) {
+            initialBalanceInput.addEventListener('input', (e) => this.formatBalanceInput(e));
+            initialBalanceInput.addEventListener('focus', (e) => this.formatBalanceOnFocus(e));
+            initialBalanceInput.addEventListener('blur', (e) => this.formatBalanceOnBlur(e));
+        }
     }
 
     // Simple debouncing
@@ -43,41 +202,203 @@ class ExpenseTracker {
         }, 200);
     }
 
-    addTransaction() {
+    // Auto-format amount input methods
+    formatAmountInput(e) {
+        const input = e.target;
+        let value = input.value.replace(/[^\d]/g, ''); // Remove non-digits
+        
+        // Format with thousand separators
+        if (value.length > 0) {
+            value = parseInt(value).toLocaleString('id-ID');
+            input.value = value;
+        }
+    }
+
+    formatAmountOnFocus(e) {
+        const input = e.target;
+        input.value = input.value.replace(/[^\d]/g, ''); // Remove formatting for editing
+    }
+
+    formatAmountOnBlur(e) {
+        const input = e.target;
+        let value = input.value.replace(/[^\d]/g, ''); // Remove non-digits
+        
+        if (value.length > 0) {
+            // Format with thousand separators
+            value = parseInt(value).toLocaleString('id-ID');
+            input.value = value;
+        }
+    }
+
+    // Initial balance methods
+    formatBalanceInput(e) {
+        const input = e.target;
+        let value = input.value.replace(/[^\d]/g, ''); // Remove non-digits
+        
+        // Format with thousand separators
+        if (value.length > 0) {
+            value = parseInt(value).toLocaleString('id-ID');
+            input.value = value;
+        }
+    }
+
+    formatBalanceOnFocus(e) {
+        const input = e.target;
+        input.value = input.value.replace(/[^\d]/g, ''); // Remove formatting for editing
+    }
+
+    formatBalanceOnBlur(e) {
+        const input = e.target;
+        let value = input.value.replace(/[^\d]/g, ''); // Remove non-digits
+        
+        if (value.length > 0) {
+            // Format with thousand separators
+            value = parseInt(value).toLocaleString('id-ID');
+            input.value = value;
+        }
+    }
+
+    setInitialBalance() {
+        const input = document.getElementById('initialBalance');
+        if (!input) return;
+        
+        let value = input.value.replace(/[^\d]/g, ''); // Remove non-digits
+        
+        if (value.length === 0) {
+            alert('Mohon masukkan saldo awal!');
+            return;
+        }
+        
+        const balance = parseFloat(value);
+        if (balance < 0) {
+            alert('Saldo awal tidak boleh negatif!');
+            return;
+        }
+        
+        this.initialBalance = balance;
+        localStorage.setItem('initialBalance', balance.toString());
+        
+        // Update display
+        this.renderAll();
+        
+        // Show success message
+        alert(`Saldo awal berhasil diset: Rp ${balance.toLocaleString('id-ID')}`);
+        
+        // Clear input
+        input.value = '';
+    }
+
+    getCurrentBalance() {
+        const totalIncome = this.transactions
+            .filter(t => t.type === 'INCOME')
+            .reduce((sum, t) => sum + t.amount, 0);
+            
+        const totalExpense = this.transactions
+            .filter(t => t.type === 'EXPENSE')
+            .reduce((sum, t) => sum + t.amount, 0);
+            
+        return this.initialBalance + totalIncome - totalExpense;
+    }
+
+    async addTransaction() {
         if (this.isUpdating) return;
         
         const type = document.getElementById('type')?.value;
-        const amount = parseFloat(document.getElementById('amount')?.value);
+        const amountInput = document.getElementById('amount')?.value;
         const category = document.getElementById('category')?.value;
         const description = document.getElementById('description')?.value;
 
-        if (!amount || !category || !description) {
+        if (!amountInput || !category || !description) {
             alert('Mohon lengkapi semua field!');
             return;
         }
 
-        const transaction = {
-            id: Date.now(),
-            type: type,
-            amount: amount,
-            category: category,
-            description: description,
-            date: new Date().toLocaleDateString('id-ID')
-        };
+        // Convert formatted amount back to number
+        const amount = parseFloat(amountInput.replace(/[^\d]/g, ''));
 
-        this.transactions.push(transaction);
-        this.saveToLocalStorage();
-        this.renderAll();
-        this.resetForm();
+        if (!amount || amount <= 0) {
+            alert('Jumlah harus lebih dari 0!');
+            return;
+        }
+
+        try {
+            this.isUpdating = true;
+            
+            // Create transaction object for API - ensure proper data types
+            const transactionData = {
+                type: type.toUpperCase(), // Ensure uppercase
+                amount: amount, // Send as number, not string
+                categoryId: parseInt(category), // Ensure integer
+                description: description.trim(), // Trim whitespace
+                transactionDate: new Date().toISOString().split('T')[0], // YYYY-MM-DD format
+                userId: 1 // Default user ID for now
+            };
+
+            console.log('Sending transaction data:', transactionData);
+
+            // Send to API
+            const newTransaction = await apiService.createTransaction(transactionData);
+            
+            console.log('Transaction created successfully:', newTransaction);
+            
+            // Add to local array
+            this.transactions.push(newTransaction);
+            
+            // Update display
+            this.renderAll();
+            
+            // Reset form
+            this.resetForm();
+            
+            // Show success message
+            alert('Transaksi berhasil ditambahkan!');
+            
+        } catch (error) {
+            console.error('Failed to add transaction:', error);
+            
+            // Show more specific error message
+            let errorMessage = 'Gagal menambahkan transaksi. ';
+            if (error.message.includes('400')) {
+                errorMessage += 'Data tidak valid. Silakan periksa input Anda.';
+            } else if (error.message.includes('500')) {
+                errorMessage += 'Server error. Silakan coba lagi nanti.';
+            } else {
+                errorMessage += error.message;
+            }
+            
+            alert(errorMessage);
+        } finally {
+            this.isUpdating = false;
+        }
     }
 
-    deleteTransaction(id) {
+    async deleteTransaction(id) {
         if (this.isUpdating) return;
         
-        if (confirm('Yakin ingin menghapus transaksi ini?')) {
+        if (!confirm('Apakah Anda yakin ingin menghapus transaksi ini?')) {
+            return;
+        }
+
+        try {
+            this.isUpdating = true;
+            
+            // Delete from API
+            await apiService.deleteTransaction(id);
+            
+            // Remove from local array
             this.transactions = this.transactions.filter(t => t.id !== id);
-            this.saveToLocalStorage();
+            
+            // Update display
             this.renderAll();
+            
+            // Show success message
+            alert('Transaksi berhasil dihapus!');
+            
+        } catch (error) {
+            console.error('Failed to delete transaction:', error);
+            alert('Gagal menghapus transaksi. Silakan coba lagi.');
+        } finally {
+            this.isUpdating = false;
         }
     }
 
@@ -85,122 +406,180 @@ class ExpenseTracker {
         const form = document.getElementById('transactionForm');
         if (form) {
             form.reset();
-        }
-    }
-
-    saveToLocalStorage() {
-        try {
-            localStorage.setItem('transactions', JSON.stringify(this.transactions));
-        } catch (e) {
-            console.error('Error saving to localStorage:', e);
+            // Clear amount input formatting
+            const amountInput = document.getElementById('amount');
+            if (amountInput) {
+                amountInput.value = '';
+            }
         }
     }
 
     getFilteredTransactions() {
-        const categoryFilter = document.getElementById('filterCategory')?.value || '';
-        const typeFilter = document.getElementById('filterType')?.value || '';
-
-        return this.transactions.filter(transaction => {
-            const categoryMatch = !categoryFilter || transaction.category === categoryFilter;
-            const typeMatch = !typeFilter || transaction.type === typeFilter;
-            return categoryMatch && typeMatch;
-        });
+        let filtered = [...this.transactions];
+        
+        const categoryFilter = document.getElementById('filterCategory')?.value;
+        const typeFilter = document.getElementById('filterType')?.value;
+        
+        if (categoryFilter) {
+            filtered = filtered.filter(t => t.categoryId === parseInt(categoryFilter));
+        }
+        
+        if (typeFilter) {
+            filtered = filtered.filter(t => t.type === typeFilter);
+        }
+        
+        return filtered;
     }
 
     renderAll() {
         if (this.isUpdating) return;
         this.isUpdating = true;
-
+        
         try {
+            // Populate category dropdowns first
+            this.populateCategoryDropdowns();
+            
+            // Update display
             this.updateSummary();
             this.updateTransactionsTable();
             this.updateChart();
+            this.displayInitialBalance();
+        } catch (error) {
+            console.error('Error rendering:', error);
         } finally {
             this.isUpdating = false;
         }
     }
 
+    displayInitialBalance() {
+        const initialBalanceInput = document.getElementById('initialBalance');
+        if (initialBalanceInput && this.initialBalance > 0) {
+            // Show current initial balance as placeholder or info
+            initialBalanceInput.placeholder = `Saldo awal saat ini: Rp ${this.initialBalance.toLocaleString('id-ID')}`;
+        }
+    }
+
     updateSummary() {
         const totalIncome = this.transactions
-            .filter(t => t.type === 'income')
+            .filter(t => t.type === 'INCOME')
             .reduce((sum, t) => sum + t.amount, 0);
-
+            
         const totalExpense = this.transactions
-            .filter(t => t.type === 'expense')
+            .filter(t => t.type === 'EXPENSE')
             .reduce((sum, t) => sum + t.amount, 0);
-
-        const balance = totalIncome - totalExpense;
-
-        const incomeEl = document.getElementById('totalIncome');
-        const expenseEl = document.getElementById('totalExpense');
-        const balanceEl = document.getElementById('balance');
-
-        if (incomeEl) incomeEl.textContent = `Rp ${totalIncome.toLocaleString('id-ID')}`;
-        if (expenseEl) expenseEl.textContent = `Rp ${totalExpense.toLocaleString('id-ID')}`;
-        if (balanceEl) balanceEl.textContent = `Rp ${balance.toLocaleString('id-ID')}`;
+            
+        const currentBalance = this.getCurrentBalance();
+        
+        // Update summary display
+        const balanceElement = document.getElementById('balance');
+        const incomeElement = document.getElementById('totalIncome');
+        const expenseElement = document.getElementById('totalExpense');
+        
+        if (balanceElement) {
+            balanceElement.textContent = `Rp ${currentBalance.toLocaleString('id-ID')}`;
+        }
+        
+        if (incomeElement) {
+            incomeElement.textContent = `Rp ${totalIncome.toLocaleString('id-ID')}`;
+        }
+        
+        if (expenseElement) {
+            expenseElement.textContent = `Rp ${totalExpense.toLocaleString('id-ID')}`;
+        }
     }
 
     updateTransactionsTable() {
-        const tbody = document.getElementById('transactionsBody');
-        if (!tbody) return;
-
         const filteredTransactions = this.getFilteredTransactions();
+        const tbody = document.getElementById('transactionsBody');
         
-        // Clear existing content
-        tbody.innerHTML = '';
+        if (!tbody) return;
+        
+        // Use DocumentFragment for better performance
+        const fragment = document.createDocumentFragment();
 
         if (filteredTransactions.length === 0) {
             const row = document.createElement('tr');
             row.innerHTML = '<td colspan="6" style="text-align: center;">Tidak ada transaksi</td>';
-            tbody.appendChild(row);
-            return;
-        }
-
-        // Create fragment for better performance
-        const fragment = document.createDocumentFragment();
-
-        filteredTransactions.forEach(transaction => {
-            const row = document.createElement('tr');
-            row.innerHTML = `
-                <td>${transaction.date}</td>
-                <td>
-                    <span class="badge ${transaction.type === 'income' ? 'income' : 'expense'}">
-                        ${transaction.type === 'income' ? '💰 Pemasukan' : '💸 Pengeluaran'}
-                    </span>
-                </td>
-                <td>${this.getCategoryLabel(transaction.category)}</td>
-                <td>${transaction.description}</td>
-                <td class="${transaction.type === 'income' ? 'income-amount' : 'expense-amount'}">
-                    Rp ${transaction.amount.toLocaleString('id-ID')}
-                </td>
-                <td>
-                    <button class="delete-btn" onclick="expenseTracker.deleteTransaction(${transaction.id})">
-                        🗑️ Hapus
-                    </button>
-                </td>
-            `;
             fragment.appendChild(row);
-        });
-
+        } else {
+            filteredTransactions.forEach(transaction => {
+                const row = document.createElement('tr');
+                
+                // Get category name from categories array
+                const category = this.categories.find(c => c.id === transaction.categoryId);
+                const categoryName = category ? category.name : 'Unknown';
+                
+                // Format date
+                const date = transaction.transactionDate ? 
+                    new Date(transaction.transactionDate).toLocaleDateString('id-ID') : 
+                    'N/A';
+                
+                row.innerHTML = `
+                    <td>${date}</td>
+                    <td>
+                        <span class="badge ${transaction.type === 'income' ? 'income' : 'expense'}">
+                            ${transaction.type === 'income' ? '💰 Pemasukan' : '💸 Pengeluaran'}
+                        </span>
+                    </td>
+                    <td>${categoryName}</td>
+                    <td>${transaction.description || 'N/A'}</td>
+                    <td class="${transaction.type === 'income' ? 'income-amount' : 'expense-amount'}">
+                        Rp ${transaction.amount.toLocaleString('id-ID')}
+                    </td>
+                    <td>
+                        <button class="delete-btn" onclick="expenseTracker.deleteTransaction(${transaction.id})">
+                            🗑️ Hapus
+                        </button>
+                    </td>
+                `;
+                fragment.appendChild(row);
+            });
+        }
+        
+        // Clear and append in one operation
+        tbody.innerHTML = '';
         tbody.appendChild(fragment);
     }
 
-    getCategoryLabel(category) {
-        const labels = {
-            'salary': 'Gaji',
-            'freelance': 'Freelance',
-            'investment': 'Investasi',
-            'food': 'Makanan',
-            'transport': 'Transport',
-            'entertainment': 'Hiburan',
-            'shopping': 'Belanja',
-            'bills': 'Tagihan',
-            'other': 'Lainnya'
-        };
-        return labels[category] || category;
+    updateChart() {
+        if (!this.chart) {
+            this.initializeChart();
+            return;
+        }
+
+        // Get expense data by category
+        const expenseData = {};
+        this.transactions
+            .filter(t => t.type === 'EXPENSE')
+            .forEach(t => {
+                const category = this.categories.find(c => c.id === t.categoryId);
+                const categoryName = category ? category.name : 'Unknown';
+                expenseData[categoryName] = (expenseData[categoryName] || 0) + t.amount;
+            });
+
+        const labels = Object.keys(expenseData);
+        const data = Object.values(expenseData);
+
+        if (data.length === 0) {
+            // Update chart with empty data instead of destroying
+            this.chart.data.labels = ['Belum ada data'];
+            this.chart.data.datasets[0].data = [1];
+            this.chart.data.datasets[0].backgroundColor = ['#C9CBCF'];
+        } else {
+            // Update chart data efficiently
+            this.chart.data.labels = labels;
+            this.chart.data.datasets[0].data = data;
+            this.chart.data.datasets[0].backgroundColor = [
+                '#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0',
+                '#9966FF', '#FF9F40', '#FF6384', '#C9CBCF'
+            ];
+        }
+
+        // Update chart without destroying
+        this.chart.update('none'); // Use 'none' mode for better performance
     }
 
-    updateChart() {
+    initializeChart() {
         const canvas = document.getElementById('expenseChart');
         if (!canvas) return;
 
@@ -213,12 +592,14 @@ class ExpenseTracker {
         // Get expense data by category
         const expenseData = {};
         this.transactions
-            .filter(t => t.type === 'expense')
+            .filter(t => t.type === 'EXPENSE')
             .forEach(t => {
-                expenseData[t.category] = (expenseData[t.category] || 0) + t.amount;
+                const category = this.categories.find(c => c.id === t.categoryId);
+                const categoryName = category ? category.name : 'Unknown';
+                expenseData[categoryName] = (expenseData[categoryName] || 0) + t.amount;
             });
 
-        const labels = Object.keys(expenseData).map(cat => this.getCategoryLabel(cat));
+        const labels = Object.keys(expenseData);
         const data = Object.values(expenseData);
 
         if (data.length === 0) {
@@ -253,10 +634,8 @@ class ExpenseTracker {
                 plugins: {
                     legend: {
                         position: 'bottom',
-                        labels: {
-                            padding: 20,
-                            usePointStyle: true
-                        }
+                        padding: 20,
+                        usePointStyle: true
                     },
                     tooltip: {
                         callbacks: {
@@ -272,6 +651,34 @@ class ExpenseTracker {
                 }
             }
         });
+    }
+
+    populateCategoryDropdowns() {
+        // Populate main form category dropdown
+        const categorySelect = document.getElementById('category');
+        if (categorySelect) {
+            categorySelect.innerHTML = '<option value="">Pilih Kategori</option>';
+            
+            this.categories.forEach(cat => {
+                const option = document.createElement('option');
+                option.value = cat.id;
+                option.textContent = `${cat.icon} ${cat.name}`;
+                categorySelect.appendChild(option);
+            });
+        }
+
+        // Populate filter category dropdown
+        const filterCategorySelect = document.getElementById('filterCategory');
+        if (filterCategorySelect) {
+            filterCategorySelect.innerHTML = '<option value="">Semua Kategori</option>';
+            
+            this.categories.forEach(cat => {
+                const option = document.createElement('option');
+                option.value = cat.id;
+                option.textContent = `${cat.icon} ${cat.name}`;
+                filterCategorySelect.appendChild(option);
+            });
+        }
     }
 }
 

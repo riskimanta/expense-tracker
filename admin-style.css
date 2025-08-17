@@ -317,19 +317,48 @@
     background: white;
     border-radius: 12px;
     border: 2px solid #e9ecef;
+    /* Prevent text overflow */
+    overflow: hidden;
+    /* Ensure consistent card heights */
+    min-height: 120px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
 }
 
 .stat-number {
     display: block;
-    font-size: 2em;
+    font-size: 1.8em; /* Reduced from 2em to prevent wrapping */
     font-weight: bold;
     color: #667eea;
     margin-bottom: 5px;
+    /* Remove aggressive text truncation - let text wrap naturally if needed */
+    /* white-space: nowrap; - REMOVED */
+    /* overflow: hidden; - REMOVED */
+    /* text-overflow: ellipsis; - REMOVED */
+    /* Ensure proper line height */
+    line-height: 1.2;
+    /* Add min-height to maintain consistent card heights */
+    min-height: 2.2em;
+    /* Ensure proper width */
+    width: 100%;
+    text-align: center;
+    /* Allow text to wrap to multiple lines if needed */
+    word-wrap: break-word;
+    overflow-wrap: break-word;
 }
 
 .stat-label {
     font-size: 0.9em;
     color: #666;
+    /* Ensure label stays on one line */
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    /* Ensure proper positioning */
+    width: 100%;
+    text-align: center;
 }
 
 /* Backup Options */
@@ -446,5 +475,48 @@
     .analytics-grid,
     .backup-options {
         grid-template-columns: 1fr;
+    }
+    
+    /* Specific responsive rules for statistics */
+    .stats-grid {
+        grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); /* Increased from 100px */
+        gap: 15px;
+    }
+    
+    .stat-item {
+        padding: 15px;
+        min-height: 100px;
+    }
+    
+    .stat-number {
+        font-size: 1.6em; /* Increased from 1.5em for better visibility */
+        min-height: 1.8em;
+        /* Ensure numbers are fully visible on mobile */
+        word-wrap: break-word;
+        overflow-wrap: break-word;
+    }
+    
+    .stat-label {
+        font-size: 0.85em; /* Slightly increased for better readability */
+    }
+}
+
+@media (max-width: 480px) {
+    .stats-grid {
+        grid-template-columns: 1fr;
+        gap: 10px;
+    }
+    
+    .stat-item {
+        padding: 20px;
+        min-height: 90px; /* Reduced slightly to fit content better */
+    }
+    
+    .stat-number {
+        font-size: 1.4em; /* Increased from 1.3em for better visibility */
+        min-height: 1.6em;
+        /* Ensure full number visibility */
+        word-wrap: break-word;
+        overflow-wrap: break-word;
     }
 }

@@ -10,22 +10,22 @@ public class Transaction {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
-    @Column(name = "user_id")
+    @Column(name = "user_id", nullable = false)
     private Integer userId;
 
-    @Column(name = "type")
+    @Column(name = "type", nullable = false)
     private String type;
 
-    @Column(name = "amount")
+    @Column(name = "amount", nullable = false)
     private Double amount;
 
-    @Column(name = "category_id")
+    @Column(name = "category_id", nullable = false)
     private Integer categoryId;
 
     @Column(name = "description")
     private String description;
 
-    @Column(name = "transaction_date")
+    @Column(name = "transaction_date", nullable = false)
     private String transactionDate;
 
     @Column(name = "created_at")
@@ -44,6 +44,7 @@ public class Transaction {
         this.categoryId = categoryId;
         this.description = description;
         this.transactionDate = transactionDate;
+        // Timestamps akan di-set otomatis oleh database atau service
     }
 
     // Getters and Setters
@@ -117,5 +118,20 @@ public class Transaction {
 
     public void setUpdatedAt(String updatedAt) {
         this.updatedAt = updatedAt;
+    }
+
+    @Override
+    public String toString() {
+        return "Transaction{" +
+                "id=" + id +
+                ", userId=" + userId +
+                ", type='" + type + '\'' +
+                ", amount=" + amount +
+                ", categoryId=" + categoryId +
+                ", description='" + description + '\'' +
+                ", transactionDate='" + transactionDate + '\'' +
+                ", createdAt='" + createdAt + '\'' +
+                ", updatedAt='" + updatedAt + '\'' +
+                '}';
     }
 }

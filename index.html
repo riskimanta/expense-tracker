@@ -28,7 +28,7 @@
                 
                 <div class="form-group">
                     <label for="amount">Jumlah (Rp):</label>
-                    <input type="number" id="amount" min="0" step="1000" required>
+                    <input type="text" id="amount" placeholder="Contoh: 100000" required>
                 </div>
                 
                 <div class="form-group">
@@ -58,17 +58,29 @@
 
         <!-- Ringkasan Keuangan -->
         <div class="summary-container">
-            <div class="summary-card income">
-                <h3>Total Pemasukan</h3>
-                <p id="totalIncome">Rp 0</p>
+            <div class="summary-cards">
+                <div class="summary-card balance">
+                    <h3>💰 Saldo</h3>
+                    <p id="balance">Rp 0</p>
+                </div>
+                <div class="summary-card income">
+                    <h3>💰 Total Pemasukan</h3>
+                    <p id="totalIncome">Rp 0</p>
+                </div>
+                <div class="summary-card expense">
+                    <h3>💸 Total Pengeluaran</h3>
+                    <p id="totalExpense">Rp 0</p>
+                </div>
             </div>
-            <div class="summary-card expense">
-                <h3>Total Pengeluaran</h3>
-                <p id="totalExpense">Rp 0</p>
-            </div>
-            <div class="summary-card balance">
-                <h3>Saldo</h3>
-                <p id="balance">Rp 0</p>
+
+            <!-- Initial Balance Section -->
+            <div class="initial-balance-section">
+                <h3>🏦 Set Saldo Awal</h3>
+                <div class="balance-input-group">
+                    <input type="text" id="initialBalance" placeholder="Masukkan saldo awal (contoh: 1000000)" class="balance-input">
+                    <button id="setBalanceBtn" class="balance-btn">Set Saldo</button>
+                </div>
+                <p class="balance-info">Saldo awal akan digunakan sebagai basis perhitungan saldo saat ini</p>
             </div>
         </div>
 

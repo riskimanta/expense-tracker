@@ -1,75 +1,83 @@
-# 💰 Expense Tracker
+# 💰 Expense Tracker Application
 
-Aplikasi sederhana untuk melacak pemasukan dan pengeluaran keuangan pribadi.
+A comprehensive expense tracking application with frontend and backend components.
 
-## 🚀 Fitur
+## 🚀 Quick Start
 
-- ✅ Input transaksi (pemasukan/pengeluaran)
-- ✅ Kategorisasi transaksi
-- ✅ Perhitungan otomatis total dan saldo
-- ✅ Filter berdasarkan kategori dan jenis
-- ✅ Grafik pie chart untuk visualisasi pengeluaran
-- ✅ Penyimpanan data di LocalStorage
-- ✅ Responsive design
+### Frontend
+1. Open `index.html` in your browser
+2. Start tracking your expenses!
 
-## 🛠️ Teknologi
+### Backend
+1. Run database setup: `./setup-database.sh` (Linux/Mac) or `setup-database.bat` (Windows)
+2. Start Spring Boot: `mvn spring-boot:run`
+3. Backend will be available at `http://localhost:8080`
 
-- **Frontend**: HTML5, CSS3, JavaScript (ES6+)
-- **Chart Library**: Chart.js
-- **Storage**: LocalStorage
-- **Styling**: CSS Grid, Flexbox, Gradients
-
-## 🎯 Cara Penggunaan
-
-1. Buka file `index.html` di browser
-2. Isi form untuk menambah transaksi baru
-3. Lihat ringkasan keuangan di bagian atas
-4. Gunakan filter untuk melihat transaksi tertentu
-5. Lihat grafik pengeluaran per kategori
-
-## 🔧 Struktur File
+## 📁 Project Structure
 
 ```
-expense-tracker/
-├── index.html          # File HTML utama
-├── style.css           # Styling CSS
-├── script.js           # Logic JavaScript
-└── README.md           # Dokumentasi
+project/
+├── Frontend Files
+│   ├── index.html              # Main application
+│   ├── style.css               # Main styles
+│   ├── script.js               # Main JavaScript
+│   ├── admin.html              # Admin panel
+│   ├── admin-style.css         # Admin styles
+│   └── admin-script.js         # Admin JavaScript
+│
+├── Backend Files
+│   ├── src/                    # Java source code
+│   ├── pom.xml                 # Maven configuration
+│   └── application.properties  # Spring Boot config
+│
+├── Database Files
+│   ├── database-schema.sql     # Database schema
+│   ├── sample-data.sql         # Sample data
+│   └── expense_tracker.db      # SQLite database
+│
+├── Scripts
+│   ├── setup-database.sh       # Database setup (Linux/Mac)
+│   ├── setup-database.bat      # Database setup (Windows)
+│   ├── deploy-to-github.sh     # GitHub deployment (Linux/Mac)
+│   └── deploy-to-github.bat    # GitHub deployment (Windows)
+│
+└── Documentation
+    ├── README.md               # This file
+    ├── README-BACKEND.md       # Backend documentation
+    └── GITHUB-PUSH-COMMANDS.md # GitHub commands
 ```
 
-## 🎯 Pengembangan Selanjutnya
+## 🛠️ Features
 
-- [ ] Backend dengan Node.js/Express
-- [ ] Database MongoDB/PostgreSQL
-- [ ] User authentication
-- [ ] Export data ke Excel/PDF
-- [ ] Budget planning
-- [ ] Mobile app dengan React Native
+- **Transaction Management**: Add, edit, delete expenses and income
+- **Category Management**: Organize transactions by categories
+- **Balance Tracking**: Monitor your current balance
+- **Charts & Analytics**: Visual representation of spending patterns
+- **Admin Panel**: Manage categories and view statistics
+- **Responsive Design**: Works on desktop and mobile
+- **Local Storage**: Data persists in your browser
+- **Backend API**: Full REST API for data management
 
-## 💡 Kategori Transaksi
+## 🔧 Technology Stack
 
-**Pemasukan:**
-- Gaji
-- Freelance
-- Investasi
+- **Frontend**: HTML5, CSS3, JavaScript (ES6+), Chart.js
+- **Backend**: Java 17, Spring Boot 3.2.0, Spring Data JPA
+- **Database**: SQLite
+- **Build Tool**: Maven
 
-**Pengeluaran:**
-- Makanan
-- Transport
-- Hiburan
-- Belanja
-- Tagihan
-- Lainnya
+## 📚 Documentation
 
-## 🌟 Screenshot
+- [Backend Documentation](README-BACKEND.md)
+- [GitHub Commands](GITHUB-PUSH-COMMANDS.md)
 
-Aplikasi memiliki interface yang modern dengan:
-- Gradient background yang menarik
-- Card design untuk ringkasan keuangan
-- Tabel transaksi yang rapi
-- Grafik interaktif
-- Responsive design untuk semua device
+## 🤝 Contributing
 
----
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Commit and push
+5. Create a pull request
 
-Dibuat dengan ❤️ untuk pembelajaran web development
+## 📄 License
+
+This project is open source and available under the [MIT License](LICENSE).

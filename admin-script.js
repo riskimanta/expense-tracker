@@ -349,7 +349,25 @@ class AdminPanel {
         const avgAmount = transactions.length > 0 
             ? transactions.reduce((sum, t) => sum + t.amount, 0) / transactions.length 
             : 0;
-        document.getElementById('avgTransaction').textContent = `Rp ${avgAmount.toLocaleString('id-ID')}`;
+        
+        // Improved currency formatting - more compact and readable
+        let formattedAmount;
+        if (avgAmount > 0) {
+            if (avgAmount >= 1000000) {
+                // For millions, use compact format
+                formattedAmount = `Rp${(avgAmount / 1000000).toFixed(1)}M`;
+            } else if (avgAmount >= 1000) {
+                // For thousands, use compact format
+                formattedAmount = `Rp${(avgAmount / 1000).toFixed(0)}K`;
+            } else {
+                // For small amounts, use full format
+                formattedAmount = `Rp${avgAmount.toLocaleString('id-ID')}`;
+            }
+        } else {
+            formattedAmount = 'Rp 0';
+        }
+        
+        document.getElementById('avgTransaction').textContent = formattedAmount;
 
         // Load top categories
         this.loadTopCategories(transactions);
@@ -372,6 +390,16 @@ class AdminPanel {
         container.innerHTML = '';
 
         topCategories.forEach(([category, amount]) => {
+            // Improved currency formatting for categories
+            let formattedAmount;
+            if (amount >= 1000000) {
+                formattedAmount = `Rp${(amount / 1000000).toFixed(1)}M`;
+            } else if (amount >= 1000) {
+                formattedAmount = `Rp${(amount / 1000).toFixed(0)}K`;
+            } else {
+                formattedAmount = `Rp${amount.toLocaleString('id-ID')}`;
+            }
+            
             const categoryElement = document.createElement('div');
             categoryElement.style.cssText = `
                 display: flex;
@@ -386,7 +414,7 @@ class AdminPanel {
             
             categoryElement.innerHTML = `
                 <span style="font-weight: 600;">${this.getCategoryLabel(category)}</span>
-                <span style="color: #667eea; font-weight: bold;">Rp ${amount.toLocaleString('id-ID')}</span>
+                <span style="color: #667eea; font-weight: bold;">${formattedAmount}</span>
             `;
             
             container.appendChild(categoryElement);
