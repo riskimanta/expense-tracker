@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel - Expense Tracker</title>
+    <link rel="stylesheet" href="admin-style.css">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="admin-container">
+        <header class="admin-header">
+            <h1>🔧 Admin Panel - Expense Tracker</h1>
+            <nav class="admin-nav">
+                <a href="index.html" class="nav-link">← Kembali ke Aplikasi</a>
+                <button id="exportData" class="admin-btn">📊 Export Data</button>
+                <button id="importData" class="admin-btn">📥 Import Data</button>
+            </nav>
+        </header>
+
+        <div class="admin-content">
+            <!-- Sidebar Navigation -->
+            <aside class="admin-sidebar">
+                <div class="sidebar-section">
+                    <h3>📋 Menu Admin</h3>
+                    <ul class="sidebar-menu">
+                        <li><a href="#categories" class="sidebar-link active">Kategori</a></li>
+                        <li><a href="#users" class="sidebar-link">User Management</a></li>
+                        <li><a href="#settings" class="sidebar-link">Pengaturan</a></li>
+                        <li><a href="#analytics" class="sidebar-link">Analytics</a></li>
+                        <li><a href="#backup" class="sidebar-link">Backup & Restore</a></li>
+                    </ul>
+                </div>
+            </aside>
+
+            <!-- Main Content Area -->
+            <main class="admin-main">
+                <!-- Categories Management -->
+                <section id="categories" class="admin-section active">
+                    <h2>🏷️ Manajemen Kategori</h2>
+                    <div class="category-management">
+                        <div class="category-form">
+                            <h3>Tambah Kategori Baru</h3>
+                            <form id="categoryForm">
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label for="categoryName">Nama Kategori:</label>
+                                        <input type="text" id="categoryName" required placeholder="Contoh: Pendidikan">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="categoryType">Jenis:</label>
+                                        <select id="categoryType" required>
+                                            <option value="income">Pemasukan</option>
+                                            <option value="expense">Pengeluaran</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="categoryColor">Warna:</label>
+                                        <input type="color" id="categoryColor" value="#4CAF50">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="categoryIcon">Icon:</label>
+                                        <select id="categoryIcon">
+                                            <option value="💰">💰</option>
+                                            <option value="🏠">🏠</option>
+                                            <option value="🚗">🚗</option>
+                                            <option value="🍔">🍔</option>
+                                            <option value="🎬">🎬</option>
+                                            <option value="🛒">🛒</option>
+                                            <option value="📚">📚</option>
+                                            <option value="💊">💊</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <button type="submit" class="admin-btn">➕ Tambah Kategori</button>
+                            </form>
+                        </div>
+
+                        <div class="category-list">
+                            <h3>Daftar Kategori</h3>
+                            <div class="category-grid" id="categoryGrid">
+                                <!-- Categories will be loaded here -->
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- User Management -->
+                <section id="users" class="admin-section">
+                    <h2>👥 Manajemen User</h2>
+                    <div class="user-management">
+                        <div class="user-form">
+                            <h3>Tambah User Baru</h3>
+                            <form id="userForm">
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label for="userName">Nama User:</label>
+                                        <input type="text" id="userName" required placeholder="Nama lengkap">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="userEmail">Email:</label>
+                                        <input type="email" id="userEmail" required placeholder="email@example.com">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="userRole">Role:</label>
+                                        <select id="userRole" required>
+                                            <option value="user">User</option>
+                                            <option value="admin">Admin</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <button type="submit" class="admin-btn">➕ Tambah User</button>
+                            </form>
+                        </div>
+
+                        <div class="user-list">
+                            <h3>Daftar User</h3>
+                            <table class="admin-table">
+                                <thead>
+                                    <tr>
+                                        <th>Nama</th>
+                                        <th>Email</th>
+                                        <th>Role</th>
+                                        <th>Status</th>
+                                        <th>Aksi</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="userTableBody">
+                                    <!-- Users will be loaded here -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Settings -->
+                <section id="settings" class="admin-section">
+                    <h2>⚙️ Pengaturan Aplikasi</h2>
+                    <div class="settings-grid">
+                        <div class="setting-card">
+                            <h3>🎨 Tema & Warna</h3>
+                            <div class="setting-item">
+                                <label for="primaryColor">Warna Utama:</label>
+                                <input type="color" id="primaryColor" value="#667eea">
+                            </div>
+                            <div class="setting-item">
+                                <label for="secondaryColor">Warna Sekunder:</label>
+                                <input type="color" id="secondaryColor" value="#764ba2">
+                            </div>
+                            <div class="setting-item">
+                                <label for="themeMode">Mode Tema:</label>
+                                <select id="themeMode">
+                                    <option value="light">Light</option>
+                                    <option value="dark">Dark</option>
+                                    <option value="auto">Auto</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="setting-card">
+                            <h3>📊 Grafik & Visualisasi</h3>
+                            <div class="setting-item">
+                                <label for="chartType">Tipe Grafik Default:</label>
+                                <select id="chartType">
+                                    <option value="pie">Pie Chart</option>
+                                    <option value="bar">Bar Chart</option>
+                                    <option value="line">Line Chart</option>
+                                    <option value="doughnut">Doughnut Chart</option>
+                                </select>
+                            </div>
+                            <div class="setting-item">
+                                <label for="chartAnimation">Animasi Grafik:</label>
+                                <input type="checkbox" id="chartAnimation" checked>
+                            </div>
+                        </div>
+
+                        <div class="setting-card">
+                            <h3>🔔 Notifikasi</h3>
+                            <div class="setting-item">
+                                <label for="enableNotifications">Aktifkan Notifikasi:</label>
+                                <input type="checkbox" id="enableNotifications" checked>
+                            </div>
+                            <div class="setting-item">
+                                <label for="budgetAlerts">Alert Budget:</label>
+                                <input type="checkbox" id="budgetAlerts" checked>
+                            </div>
+                        </div>
+
+                        <div class="setting-card">
+                            <h3>💾 Data & Storage</h3>
+                            <div class="setting-item">
+                                <label for="autoBackup">Auto Backup:</label>
+                                <input type="checkbox" id="autoBackup">
+                            </div>
+                            <div class="setting-item">
+                                <label for="dataRetention">Retensi Data (hari):</label>
+                                <input type="number" id="dataRetention" value="365" min="30" max="3650">
+                            </div>
+                        </div>
+                    </div>
+                    <button id="saveSettings" class="admin-btn primary">💾 Simpan Pengaturan</button>
+                </section>
+
+                <!-- Analytics -->
+                <section id="analytics" class="admin-section">
+                    <h2>📈 Analytics & Laporan</h2>
+                    <div class="analytics-grid">
+                        <div class="analytics-card">
+                            <h3>📊 Statistik Umum</h3>
+                            <div class="stats-grid">
+                                <div class="stat-item">
+                                    <span class="stat-number" id="totalUsers">0</span>
+                                    <span class="stat-label">Total Users</span>
+                                </div>
+                                <div class="stat-item">
+                                    <span class="stat-number" id="totalTransactions">0</span>
+                                    <span class="stat-label">Total Transaksi</span>
+                                </div>
+                                <div class="stat-item">
+                                    <span class="stat-number" id="avgTransaction">Rp 0</span>
+                                    <span class="stat-label">Rata-rata Transaksi</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="analytics-card">
+                            <h3>📅 Aktivitas Bulanan</h3>
+                            <canvas id="monthlyChart" width="400" height="200"></canvas>
+                        </div>
+
+                        <div class="analytics-card">
+                            <h3>🏆 Top Kategori</h3>
+                            <div id="topCategories">
+                                <!-- Top categories will be loaded here -->
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Backup & Restore -->
+                <section id="backup" class="admin-section">
+                    <h2>💾 Backup & Restore</h2>
+                    <div class="backup-options">
+                        <div class="backup-card">
+                            <h3>📤 Export Data</h3>
+                            <p>Download semua data dalam format JSON</p>
+                            <button id="exportAllData" class="admin-btn">📥 Download Data</button>
+                        </div>
+
+                        <div class="backup-card">
+                            <h3>📥 Import Data</h3>
+                            <p>Upload file JSON untuk restore data</p>
+                            <input type="file" id="importFile" accept=".json" style="display: none;">
+                            <button id="importAllData" class="admin-btn">📤 Upload File</button>
+                        </div>
+
+                        <div class="backup-card">
+                            <h3>🗑️ Clear Data</h3>
+                            <p>Hapus semua data (permanen)</p>
+                            <button id="clearAllData" class="admin-btn danger">🗑️ Hapus Semua</button>
+                        </div>
+                    </div>
+                </section>
+            </main>
+        </div>
+    </div>
+
+    <script src="admin-script.js"></script>
+</body>
+</html>

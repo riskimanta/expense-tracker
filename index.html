@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Expense Tracker</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <div class="container">
+        <h1>💰 Expense Tracker</h1>
+        <div class="admin-link">
+            <a href="admin.html" class="admin-btn">🔧 Admin Panel</a>
+        </div>
+        
+        <!-- Form Input Transaksi -->
+        <div class="form-container">
+            <h2>Tambah Transaksi Baru</h2>
+            <form id="transactionForm">
+                <div class="form-group">
+                    <label for="type">Jenis Transaksi:</label>
+                    <select id="type" required>
+                        <option value="income">Pemasukan</option>
+                        <option value="expense">Pengeluaran</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="amount">Jumlah (Rp):</label>
+                    <input type="number" id="amount" min="0" step="1000" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="category">Kategori:</label>
+                    <select id="category" required>
+                        <option value="">Pilih Kategori</option>
+                        <option value="salary">Gaji</option>
+                        <option value="freelance">Freelance</option>
+                        <option value="investment">Investasi</option>
+                        <option value="food">Makanan</option>
+                        <option value="transport">Transport</option>
+                        <option value="entertainment">Hiburan</option>
+                        <option value="shopping">Belanja</option>
+                        <option value="bills">Tagihan</option>
+                        <option value="other">Lainnya</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="description">Deskripsi:</label>
+                    <input type="text" id="description" placeholder="Contoh: Gaji bulanan" required>
+                </div>
+                
+                <button type="submit">Tambah Transaksi</button>
+            </form>
+        </div>
+
+        <!-- Ringkasan Keuangan -->
+        <div class="summary-container">
+            <div class="summary-card income">
+                <h3>Total Pemasukan</h3>
+                <p id="totalIncome">Rp 0</p>
+            </div>
+            <div class="summary-card expense">
+                <h3>Total Pengeluaran</h3>
+                <p id="totalExpense">Rp 0</p>
+            </div>
+            <div class="summary-card balance">
+                <h3>Saldo</h3>
+                <p id="balance">Rp 0</p>
+            </div>
+        </div>
+
+        <!-- Filter -->
+        <div class="filter-container">
+            <h3>Filter Transaksi</h3>
+            <select id="filterCategory">
+                <option value="">Semua Kategori</option>
+                <option value="salary">Gaji</option>
+                <option value="freelance">Freelance</option>
+                <option value="investment">Investasi</option>
+                <option value="food">Makanan</option>
+                <option value="transport">Transport</option>
+                <option value="entertainment">Hiburan</option>
+                <option value="shopping">Belanja</option>
+                <option value="bills">Tagihan</option>
+                <option value="other">Lainnya</option>
+            </select>
+            <select id="filterType">
+                <option value="">Semua Jenis</option>
+                <option value="income">Pemasukan</option>
+                <option value="expense">Pengeluaran</option>
+            </select>
+        </div>
+
+        <!-- Tabel Transaksi -->
+        <div class="transactions-container">
+            <h3>Daftar Transaksi</h3>
+            <table id="transactionsTable">
+                <thead>
+                    <tr>
+                        <th>Tanggal</th>
+                        <th>Jenis</th>
+                        <th>Kategori</th>
+                        <th>Deskripsi</th>
+                        <th>Jumlah</th>
+                        <th>Aksi</th>
+                    </tr>
+                </thead>
+                <tbody id="transactionsBody">
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Grafik -->
+        <div class="chart-container">
+            <h3>Visualisasi Pengeluaran per Kategori</h3>
+            <canvas id="expenseChart"></canvas>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
